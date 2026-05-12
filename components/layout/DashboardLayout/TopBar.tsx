@@ -3,12 +3,15 @@ import { useState } from 'react';
 import { Menu, Bell, Search } from 'lucide-react';
 import { Avatar } from '@/components/common/Avatar/Avatar';
 
-export const TopBar = () => {
+export const TopBar = ({ onMenuClick }: { onMenuClick?: () => void }) => {
   return (
     <header className="sticky top-0 z-[var(--z-sticky)] flex h-[var(--header-height)] w-full items-center justify-between border-b border-[var(--color-neutral-200)] bg-[var(--surface-primary)] px-[var(--space-4)] md:px-[var(--space-8)]">
       <div className="flex items-center">
         {/* Mobile menu button */}
-        <button className="mr-4 md:hidden text-[var(--text-secondary)] hover:text-[var(--text-primary)]">
+        <button 
+          onClick={onMenuClick}
+          className="mr-4 md:hidden text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+        >
           <Menu className="h-6 w-6" />
         </button>
 

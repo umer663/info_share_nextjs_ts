@@ -1,10 +1,8 @@
-import { Eye, Play, Users, DollarSign } from 'lucide-react';
-
 export const dashboardStats = [
-  { label: 'Total Views', value: '12,450', trend: '+12%', icon: Eye, color: 'text-[var(--color-primary-600)]', bg: 'bg-[var(--color-primary-50)]' },
-  { label: 'Total Content', value: '48', trend: '+3', icon: Play, color: 'text-[var(--color-info)]', bg: 'bg-[var(--color-info-light)]' },
-  { label: 'Premium Users', value: '126', trend: '+8%', icon: Users, color: 'text-[var(--color-warning)]', bg: 'bg-[var(--color-warning-light)]' },
-  { label: 'Monthly Revenue', value: '$4,250', trend: '+15%', icon: DollarSign, color: 'text-[var(--color-success)]', bg: 'bg-[var(--color-success-light)]' },
+  { label: 'Total Views', value: '12,450', trend: '+12%', icon: 'Eye', color: 'text-[var(--color-primary-600)]', bg: 'bg-[var(--color-primary-50)]' },
+  { label: 'Total Content', value: '48', trend: '+3', icon: 'Play', color: 'text-[var(--color-info)]', bg: 'bg-[var(--color-info-light)]' },
+  { label: 'Premium Users', value: '126', trend: '+8%', icon: 'Users', color: 'text-[var(--color-warning)]', bg: 'bg-[var(--color-warning-light)]' },
+  { label: 'Monthly Revenue', value: '$4,250', trend: '+15%', icon: 'DollarSign', color: 'text-[var(--color-success)]', bg: 'bg-[var(--color-success-light)]' },
 ];
 
 export const recentActivity = [
