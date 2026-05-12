@@ -2,6 +2,7 @@
 import { useState } from 'react';
 import { Menu, Bell, Search } from 'lucide-react';
 import { Avatar } from '@/components/common/Avatar/Avatar';
+import { ThemeSelector } from '@/components/common/ThemeSelector/ThemeSelector';
 
 export const TopBar = ({ onMenuClick }: { onMenuClick?: () => void }) => {
   return (
@@ -27,6 +28,8 @@ export const TopBar = ({ onMenuClick }: { onMenuClick?: () => void }) => {
       </div>
 
       <div className="flex items-center space-x-[var(--space-4)]">
+        <ThemeSelector />
+        
         <button className="relative p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors">
           <Bell className="h-5 w-5" />
           <span className="absolute top-1.5 right-1.5 h-2 w-2 rounded-full bg-[var(--color-error)] border-2 border-[var(--surface-primary)]"></span>

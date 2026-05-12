@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation';
 import { Menu, X } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { Button } from '@/components/common/Button/Button';
+import { ThemeSelector } from '@/components/common/ThemeSelector/ThemeSelector';
 import { publicNavItems } from '@/config/navigation';
 
 export const PublicHeader = () => {
@@ -42,6 +43,7 @@ export const PublicHeader = () => {
 
         {/* Actions */}
         <div className="hidden md:flex items-center space-x-[var(--space-4)]">
+          <ThemeSelector />
           <Link href="/login">
             <Button variant="primary" size="sm">Login</Button>
           </Link>
