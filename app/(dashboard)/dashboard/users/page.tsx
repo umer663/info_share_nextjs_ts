@@ -8,16 +8,12 @@ import { Table } from '@/components/common/Table/Table';
 import { Badge } from '@/components/common/Badge/Badge';
 import { Modal } from '@/components/common/Modal/Modal';
 import { Avatar } from '@/components/common/Avatar/Avatar';
+import { usersData } from '@/data/mock';
 
 export default function UsersManagementPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Mock data
-  const usersData = [
-    { id: '1', name: 'John Doe', email: 'john@example.com', role: 'Admin', status: 'Active', avatar: '' },
-    { id: '2', name: 'Jane Smith', email: 'jane@example.com', role: 'Manager', status: 'Active', avatar: '' },
-    { id: '3', name: 'Bob Wilson', email: 'bob@example.com', role: 'Manager', status: 'Inactive', avatar: '' },
-  ];
+  // Data imported from mock
 
   const columns = [
     { 

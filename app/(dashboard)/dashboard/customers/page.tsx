@@ -1,21 +1,18 @@
 "use client";
 import { useState } from 'react';
-import { Search, X, Mail, Clock, Calendar, CreditCard } from 'lucide-react';
+import { Search, X, Mail, Clock, Calendar, CreditCard, BookOpen } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Input } from '@/components/common/Input/Input';
 import { Select } from '@/components/common/Select/Select';
 import { Table } from '@/components/common/Table/Table';
 import { Badge } from '@/components/common/Badge/Badge';
 import { slideInDrawer } from '@/utils/animationVariants';
+import { customersData, paymentHistory } from '@/data/mock';
 
 export default function CustomersPage() {
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
 
-  const customersData = [
-    { id: '1', name: 'Ali Rahman', email: 'ali@example.com', subStatus: 'Premium', since: 'Jan 2024', lastActive: '2 days ago', freeRemaining: 0 },
-    { id: '2', name: 'Sara Khan', email: 'sara@example.com', subStatus: 'Free', since: 'Mar 2024', lastActive: '5 hours ago', freeRemaining: 3 },
-    { id: '3', name: 'Mike Johnson', email: 'mike@example.com', subStatus: 'Expired', since: 'Dec 2023', lastActive: '30 days ago', freeRemaining: 0 },
-  ];
+  // Data imported from mock
 
   const columns = [
     { key: 'name', header: 'Name', render: (item: any) => <span className="font-medium text-[var(--text-primary)]">{item.name}</span> },
@@ -34,11 +31,7 @@ export default function CustomersPage() {
     { key: 'lastActive', header: 'Last Active', render: (item: any) => <span className="text-[var(--text-secondary)]">{item.lastActive}</span> },
   ];
 
-  const paymentHistory = [
-    { date: 'Jul 15, 2024', amount: '$9.99', method: 'Card ending in 4242', status: 'Paid' },
-    { date: 'Jun 15, 2024', amount: '$9.99', method: 'Card ending in 4242', status: 'Paid' },
-    { date: 'May 15, 2024', amount: '$9.99', method: 'Card ending in 4242', status: 'Paid' },
-  ];
+
 
   return (
     <div className="flex flex-col space-y-6 relative h-full">

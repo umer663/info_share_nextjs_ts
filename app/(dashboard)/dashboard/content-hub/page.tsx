@@ -8,17 +8,12 @@ import { Table } from '@/components/common/Table/Table';
 import { Badge } from '@/components/common/Badge/Badge';
 import { Modal } from '@/components/common/Modal/Modal';
 import { Toggle } from '@/components/common/Toggle/Toggle';
+import { contentData } from '@/data/mock';
 
 export default function ContentHubPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
-  // Mock data
-  const contentData = [
-    { id: '1', title: 'Understanding Advanced Patterns', status: 'Published', isPremium: true, views: '3.2K' },
-    { id: '2', title: 'React Server Components Deep Dive', status: 'Draft', isPremium: false, views: '0' },
-    { id: '3', title: 'System Design for Beginners', status: 'Published', isPremium: true, views: '2.8K' },
-    { id: '4', title: 'Mastering TypeScript Generics', status: 'Archived', isPremium: false, views: '1.4K' },
-  ];
+  // Data imported from mock
 
   const columns = [
     { key: 'id', header: '#' },

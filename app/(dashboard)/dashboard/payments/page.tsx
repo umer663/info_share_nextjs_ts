@@ -6,20 +6,12 @@ import { Table } from '@/components/common/Table/Table';
 import { Button } from '@/components/common/Button/Button';
 import { Badge } from '@/components/common/Badge/Badge';
 import { fadeSlideDown } from '@/utils/animationVariants';
+import { expiringData, paymentsData } from '@/data/mock';
 
 export default function PaymentsPage() {
   const [showComposer, setShowComposer] = useState(false);
 
-  const expiringData = [
-    { id: '1', customer: 'Ali Rahman', plan: 'Premium', expires: 'Aug 10, 2024', days: 3 },
-    { id: '2', customer: 'Sara Khan', plan: 'Premium', expires: 'Aug 12, 2024', days: 5 },
-  ];
-
-  const paymentsData = [
-    { id: '1', date: 'Aug 1, 2024', customer: 'Ali Rahman', amount: '$9.99', method: 'Card ending 4242', status: 'Paid' },
-    { id: '2', date: 'Aug 1, 2024', customer: 'Mike Johnson', amount: '$9.99', method: 'PayPal', status: 'Paid' },
-    { id: '3', date: 'Jul 31, 2024', customer: 'Sara Khan', amount: '$9.99', method: 'Card ending 8888', status: 'Failed' },
-  ];
+  // Data imported from mock
 
   return (
     <div className="flex flex-col space-y-8">
