@@ -4,6 +4,7 @@ import {
   FileText,
   Phone,
   LogIn,
+  UserPlus,
   LayoutDashboard,
   Upload,
   Users,
@@ -31,6 +32,7 @@ export const publicNavItems: NavItem[] = [
   { label: 'About',       path: '/about',        icon: Info,     isPublic: true },
   { label: 'Content',     path: '/content',      icon: FileText, isPublic: true },
   { label: 'Contact Us',  path: '/contact',      icon: Phone,    isPublic: true },
+  { label: 'Sign Up',     path: '/signup',       icon: UserPlus, isPublic: true },
   { label: 'Login',       path: '/login',        icon: LogIn,    isPublic: true },
 ];
 

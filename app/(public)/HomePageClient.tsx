@@ -193,9 +193,11 @@ export const HomePageClient = ({ stats, featuredContent }: { stats: any[], featu
             <p className="text-[var(--color-primary-200)] text-lg md:text-xl mb-10 max-w-2xl mx-auto">
               Join hundreds of professionals who are advancing their careers with our premium resources.
             </p>
-            <Button size="lg" className="bg-white text-[var(--color-primary-900)] hover:bg-[var(--color-primary-50)]">
-              Get Started Now
-            </Button>
+            <Link href="/signup">
+              <Button size="lg" className="bg-white text-[var(--color-primary-900)] hover:bg-[var(--color-primary-50)]">
+                Get Started Now
+              </Button>
+            </Link>
           </motion.div>
         </div>
       </section>

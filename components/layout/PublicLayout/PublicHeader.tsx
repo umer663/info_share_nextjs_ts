@@ -44,6 +44,9 @@ export const PublicHeader = () => {
         {/* Actions */}
         <div className="hidden md:flex items-center space-x-[var(--space-4)]">
           <ThemeSelector />
+          <Link href="/signup">
+            <Button variant="ghost" size="sm">Get Started</Button>
+          </Link>
           <Link href="/login">
             <Button variant="primary" size="sm">Login</Button>
           </Link>
