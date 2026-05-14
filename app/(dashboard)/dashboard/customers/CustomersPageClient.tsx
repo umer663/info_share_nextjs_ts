@@ -9,13 +9,15 @@ import { Badge } from '@/components/common/Badge/Badge';
 import { slideInDrawer } from '@/utils/animationVariants';
 
 export const CustomersPageClient = ({ 
-  customersData, 
-  paymentHistory 
+  customersData 
 }: { 
-  customersData: any[]; 
-  paymentHistory: any[]; 
+  customersData: any[];
 }) => {
   const [selectedCustomer, setSelectedCustomer] = useState<any>(null);
+  const total = customersData.length;
+  const free = customersData.filter(c => c.subStatus === 'Free').length;
+  const active = customersData.filter(c => c.subStatus === 'Premium').length;
+  const expired = customersData.filter(c => c.subStatus === 'Expired' || c.subStatus === 'Cancelled').length;
 
   const columns = [
     { key: 'name', header: 'Name', render: (item: any) => <span className="font-medium text-[var(--text-primary)]">{item.name}</span> },
@@ -45,7 +47,7 @@ export const CustomersPageClient = ({
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        {[{ label: 'Total', value: '1,250' }, { label: 'Free', value: '1,124' }, { label: 'Active Premium', value: '98' }, { label: 'Expired', value: '28' }].map((stat, i) => (
+        {[{ label: 'Total', value: total.toLocaleString() }, { label: 'Free', value: free.toLocaleString() }, { label: 'Active Premium', value: active.toLocaleString() }, { label: 'Expired', value: expired.toLocaleString() }].map((stat, i) => (
           <div key={i} className="bg-[var(--surface-primary)] p-4 rounded-xl border border-[var(--color-neutral-200)]">
             <p className="text-[var(--text-muted)] text-sm mb-1">{stat.label}</p>
             <p className="text-2xl font-bold text-[var(--text-primary)]">{stat.value}</p>
@@ -119,33 +121,39 @@ export const CustomersPageClient = ({
                 {/* Subscription Info */}
                 <div>
                   <h3 className="text-sm font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-4">Current Subscription</h3>
-                  <div className="bg-[var(--color-neutral-50)] p-4 rounded-lg border border-[var(--color-neutral-200)] space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-[var(--text-secondary)]">Plan</span>
-                      <span className="font-medium text-[var(--text-primary)]">Premium Monthly</span>
+                  {selectedCustomer.subscription ? (
+                    <div className="bg-[var(--color-neutral-50)] p-4 rounded-lg border border-[var(--color-neutral-200)] space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-[var(--text-secondary)]">Plan</span>
+                        <span className="font-medium text-[var(--text-primary)]">{selectedCustomer.subscription.planName}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[var(--text-secondary)]">Status</span>
+                        <Badge variant={selectedCustomer.subStatus === 'Premium' ? 'success' : selectedCustomer.subStatus === 'Expired' ? 'error' : 'secondary'}>
+                          {selectedCustomer.subStatus}
+                        </Badge>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[var(--text-secondary)]">Expires</span>
+                        <span className="font-medium text-[var(--text-primary)]">{selectedCustomer.subscription.endDate}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-[var(--text-secondary)]">Auto-Renew</span>
+                        <span className="font-medium text-[var(--text-primary)]">{selectedCustomer.subscription.autoRenew ? 'Yes' : 'No'}</span>
+                      </div>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-[var(--text-secondary)]">Status</span>
-                      <Badge variant={selectedCustomer.subStatus === 'Premium' ? 'success' : selectedCustomer.subStatus === 'Expired' ? 'error' : 'secondary'}>
-                        {selectedCustomer.subStatus}
-                      </Badge>
+                  ) : (
+                    <div className="bg-[var(--color-neutral-50)] p-4 rounded-lg border border-[var(--color-neutral-200)]">
+                      <p className="text-[var(--text-muted)]">No active subscription</p>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-[var(--text-secondary)]">Expires</span>
-                      <span className="font-medium text-[var(--text-primary)]">Aug 15, 2024</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-[var(--text-secondary)]">Auto-Renew</span>
-                      <span className="font-medium text-[var(--text-primary)]">Yes</span>
-                    </div>
-                  </div>
+                  )}
                 </div>
 
                 {/* Payment History */}
                 <div>
                   <h3 className="text-sm font-semibold uppercase tracking-wider text-[var(--text-muted)] mb-4">Payment History</h3>
                   <div className="space-y-3">
-                    {paymentHistory.map((payment, i) => (
+                    {selectedCustomer.payments && selectedCustomer.payments.length > 0 ? selectedCustomer.payments.map((payment: any, i: number) => (
                       <div key={i} className="flex items-center justify-between p-3 border border-[var(--color-neutral-200)] rounded-lg">
                         <div className="flex items-center space-x-3">
                           <div className="p-2 bg-[var(--color-primary-50)] text-[var(--color-primary-600)] rounded-md">
@@ -156,9 +164,11 @@ export const CustomersPageClient = ({
                             <p className="text-xs text-[var(--text-muted)]">{payment.date}</p>
                           </div>
                         </div>
-                        <Badge variant="success">Paid</Badge>
+                        <Badge variant={payment.status === 'Paid' ? 'success' : payment.status === 'Failed' ? 'error' : 'secondary'}>{payment.status}</Badge>
                       </div>
-                    ))}
+                    )) : (
+                      <p className="text-[var(--text-muted)] text-sm">No payment history</p>
+                    )}
                   </div>
                 </div>
               </div>
