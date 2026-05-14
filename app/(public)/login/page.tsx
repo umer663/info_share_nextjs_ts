@@ -6,10 +6,19 @@ import { Button } from '@/components/common/Button/Button';
 import { Input } from '@/components/common/Input/Input';
 import { Toggle } from '@/components/common/Toggle/Toggle';
 
-type LoginMode = 'admin' | 'customer';
-
 export default function LoginPage() {
-  const [mode, setMode] = useState<LoginMode>('customer');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Mock authentication logic: redirect based on email content
+    if (email.toLowerCase().includes('admin')) {
+      window.location.href = '/dashboard';
+    } else {
+      window.location.href = '/account';
+    }
+  };
 
   return (
     <div className="flex min-h-screen bg-[var(--surface-primary)]">
@@ -26,12 +35,10 @@ export default function LoginPage() {
 
         <div className="relative z-10 mb-20">
           <h1 className="text-4xl font-bold text-white mb-6">
-            {mode === 'admin' ? 'Welcome Back' : 'Welcome Back'}
+            Welcome Back
           </h1>
           <p className="text-[var(--color-primary-200)] text-lg max-w-md leading-relaxed">
-            {mode === 'admin'
-              ? 'Sign in to access your personalized dashboard, manage users, and monitor platform statistics.'
-              : 'Sign in to manage your subscriptions, view content, and track your learning progress.'}
+            Sign in to access your dashboard, manage your subscriptions, and stay up to date with the latest content and community updates.
           </p>
         </div>
       </div>
@@ -46,42 +53,13 @@ export default function LoginPage() {
             </div>
             <h2 className="text-3xl font-extrabold text-[var(--text-primary)]">Sign in</h2>
             <p className="mt-2 text-[var(--text-secondary)]">
-              Enter your credentials to access the portal
+              Enter your credentials to access your account
             </p>
-          </div>
-
-          {/* Mode Tabs */}
-          <div className="flex bg-[var(--surface-secondary)] p-1 rounded-lg">
-            <button
-              type="button"
-              onClick={() => setMode('customer')}
-              className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                mode === 'customer'
-                  ? 'bg-white shadow-sm text-[var(--text-primary)]'
-                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-              }`}
-            >
-              Customer
-            </button>
-            <button
-              type="button"
-              onClick={() => setMode('admin')}
-              className={`flex-1 px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                mode === 'admin'
-                  ? 'bg-white shadow-sm text-[var(--text-primary)]'
-                  : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'
-              }`}
-            >
-              Admin / Staff
-            </button>
           </div>
 
           <form
             className="space-y-6"
-            onSubmit={(e) => {
-              e.preventDefault();
-              window.location.href = mode === 'admin' ? '/dashboard' : '/account';
-            }}
+            onSubmit={handleSubmit}
           >
             <div className="space-y-4">
               <Input
@@ -89,13 +67,17 @@ export default function LoginPage() {
                 type="email"
                 autoComplete="email"
                 required
-                placeholder={mode === 'admin' ? 'admin@infoshare.com' : 'jane@example.com'}
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="jane@example.com"
               />
               <Input
                 label="Password"
                 type="password"
                 autoComplete="current-password"
                 required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
               />
             </div>
@@ -116,20 +98,16 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          {mode === 'customer' && (
-            <p className="text-center text-sm text-[var(--text-muted)]">
-              Don&apos;t have an account?{' '}
-              <Link href="/signup" className="font-medium text-[var(--color-primary-600)] hover:text-[var(--color-primary-500)]">
-                Create one
-              </Link>
-            </p>
-          )}
-
-          {mode === 'admin' && (
-            <p className="text-center text-sm text-[var(--text-muted)]">
-              Only administrators can create accounts. If you need access, please contact support.
-            </p>
-          )}
+          <p className="text-center text-sm text-[var(--text-muted)]">
+            Don&apos;t have an account?{' '}
+            <Link href="/signup" className="font-medium text-[var(--color-primary-600)] hover:text-[var(--color-primary-500)]">
+              Create one
+            </Link>
+          </p>
+          
+          <p className="text-center text-xs text-[var(--text-muted)] mt-4">
+            For administrative access, please use your corporate credentials.
+          </p>
         </div>
       </div>
     </div>
