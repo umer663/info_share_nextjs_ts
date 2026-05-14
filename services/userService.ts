@@ -12,6 +12,16 @@ function relativeTime(date: Date): string {
   return 'Just now';
 }
 
+export async function createUser(data: {
+  fullName: string;
+  email: string;
+  passwordHash: string;
+  role: 'ADMIN' | 'MANAGER';
+}) {
+  const user = await prisma.user.create({ data });
+  return user;
+}
+
 export async function getUsers() {
   const users = await prisma.user.findMany({
     orderBy: { createdAt: 'desc' },

@@ -1,5 +1,6 @@
 "use client";
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Plus, Search, Edit, Trash2, Power, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/common/Button/Button';
 import { Input } from '@/components/common/Input/Input';
@@ -10,8 +11,15 @@ import { Modal } from '@/components/common/Modal/Modal';
 import { Avatar } from '@/components/common/Avatar/Avatar';
 
 export const UsersManagementClient = ({ usersData }: { usersData: any[] }) => {
+  const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [role, setRole] = useState('MANAGER');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState('');
 
   const columns = [
     { 
@@ -117,14 +125,57 @@ export const UsersManagementClient = ({ usersData }: { usersData: any[] }) => {
         onClose={() => setIsModalOpen(false)}
         title="Add New User"
       >
-        <form className="space-y-6" onSubmit={(e) => { e.preventDefault(); setIsModalOpen(false); }}>
-          <Input label="Full Name" required placeholder="Jane Doe" />
-          <Input label="Email Address" type="email" required placeholder="jane@example.com" />
+        <form className="space-y-6" onSubmit={async (e) => {
+          e.preventDefault();
+          setError('');
+
+          if (!fullName || !email || !password) {
+            setError('All fields are required');
+            return;
+          }
+
+          if (password.length < 8) {
+            setError('Password must be at least 8 characters');
+            return;
+          }
+
+          setIsSubmitting(true);
+
+          try {
+            const res = await fetch('/api/users', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ fullName, email, password, role }),
+            });
+
+            const data = await res.json();
+
+            if (!res.ok) {
+              setError(data.error || 'Failed to create user');
+              return;
+            }
+
+            setFullName('');
+            setEmail('');
+            setPassword('');
+            setRole('MANAGER');
+            setIsModalOpen(false);
+            router.refresh();
+          } catch {
+            setError('Network error. Please try again.');
+          } finally {
+            setIsSubmitting(false);
+          }
+        }}>
+          <Input label="Full Name" required placeholder="Jane Doe" value={fullName} onChange={(e) => setFullName(e.target.value)} />
+          <Input label="Email Address" type="email" required placeholder="jane@example.com" value={email} onChange={(e) => setEmail(e.target.value)} />
           <Input
             label="Password"
             type={showPassword ? 'text' : 'password'}
             required
             placeholder="••••••••"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             rightIcon={
               <button type="button" onClick={() => setShowPassword(!showPassword)} className="text-[var(--text-muted)] hover:text-[var(--text-secondary)]">
                 {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -135,17 +186,25 @@ export const UsersManagementClient = ({ usersData }: { usersData: any[] }) => {
           <Select 
             label="Role"
             required
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
             options={[
               { value: 'ADMIN', label: 'Admin' },
               { value: 'MANAGER', label: 'Manager' },
             ]}
           />
 
+          {error && (
+            <div className="p-3 rounded-lg bg-red-50 border border-red-200 text-red-700 text-sm">
+              {error}
+            </div>
+          )}
+
           <div className="flex justify-end space-x-3 pt-4 border-t border-[var(--color-neutral-200)]">
-            <Button variant="ghost" onClick={() => setIsModalOpen(false)} type="button">
+            <Button variant="ghost" onClick={() => setIsModalOpen(false)} type="button" disabled={isSubmitting}>
               Cancel
             </Button>
-            <Button type="submit">
+            <Button type="submit" isLoading={isSubmitting}>
               Save User
             </Button>
           </div>
