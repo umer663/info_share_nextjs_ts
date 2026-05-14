@@ -1,10 +1,11 @@
 "use client";
-import { useState } from 'react';
 import { Menu, Bell, Search } from 'lucide-react';
 import { Avatar } from '@/components/common/Avatar/Avatar';
 import { ThemeSelector } from '@/components/common/ThemeSelector/ThemeSelector';
+import { useAuth } from '@/components/providers/AuthProvider';
 
 export const TopBar = ({ onMenuClick }: { onMenuClick?: () => void }) => {
+  const { user } = useAuth();
   return (
     <header className="sticky top-0 z-[var(--z-sticky)] flex h-[var(--header-height)] w-full items-center justify-between border-b border-[var(--color-neutral-200)] bg-[var(--surface-primary)] px-[var(--space-4)] md:px-[var(--space-8)]">
       <div className="flex items-center">
@@ -37,10 +38,10 @@ export const TopBar = ({ onMenuClick }: { onMenuClick?: () => void }) => {
         
         <div className="flex items-center space-x-3 pl-4 border-l border-[var(--color-neutral-200)]">
           <div className="hidden md:flex flex-col items-end">
-            <span className="text-sm font-semibold text-[var(--text-primary)]">Admin User</span>
-            <span className="text-xs text-[var(--text-muted)]">Administrator</span>
+            <span className="text-sm font-semibold text-[var(--text-primary)]">{user?.fullName ?? 'User'}</span>
+            <span className="text-xs text-[var(--text-muted)]">{user?.role ?? ''}</span>
           </div>
-          <Avatar fallback="Admin User" size="md" />
+          <Avatar fallback={user?.fullName ?? 'User'} size="md" />
         </div>
       </div>
     </header>

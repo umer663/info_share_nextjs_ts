@@ -5,9 +5,11 @@ import { useRouter } from 'next/navigation';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/common/Button/Button';
 import { Input } from '@/components/common/Input/Input';
+import { useAuth } from '@/components/providers/AuthProvider';
 
 export default function SignupPage() {
   const router = useRouter();
+  const { refresh: refreshAuth } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [fullName, setFullName] = useState('');
@@ -48,6 +50,7 @@ export default function SignupPage() {
         return;
       }
 
+      await refreshAuth();
       router.push('/account');
       router.refresh();
     } catch {

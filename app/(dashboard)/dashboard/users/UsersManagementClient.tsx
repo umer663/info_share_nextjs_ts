@@ -1,6 +1,6 @@
 "use client";
 import { useState } from 'react';
-import { Plus, Search, Edit, Trash2, Power } from 'lucide-react';
+import { Plus, Search, Edit, Trash2, Power, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/common/Button/Button';
 import { Input } from '@/components/common/Input/Input';
 import { Select } from '@/components/common/Select/Select';
@@ -11,6 +11,7 @@ import { Avatar } from '@/components/common/Avatar/Avatar';
 
 export const UsersManagementClient = ({ usersData }: { usersData: any[] }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const columns = [
     { 
@@ -119,7 +120,17 @@ export const UsersManagementClient = ({ usersData }: { usersData: any[] }) => {
         <form className="space-y-6" onSubmit={(e) => { e.preventDefault(); setIsModalOpen(false); }}>
           <Input label="Full Name" required placeholder="Jane Doe" />
           <Input label="Email Address" type="email" required placeholder="jane@example.com" />
-          <Input label="Password" type="password" required placeholder="••••••••" />
+          <Input
+            label="Password"
+            type={showPassword ? 'text' : 'password'}
+            required
+            placeholder="••••••••"
+            rightIcon={
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="text-[var(--text-muted)] hover:text-[var(--text-secondary)]">
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            }
+          />
           
           <Select 
             label="Role"

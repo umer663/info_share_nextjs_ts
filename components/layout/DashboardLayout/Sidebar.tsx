@@ -2,13 +2,15 @@
 import { useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { LogOut, X } from 'lucide-react';
+import { Globe, LogOut, X } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { dashboardNavItems } from '@/config/navigation';
+import { useAuth } from '@/components/providers/AuthProvider';
 
 export const Sidebar = ({ isOpen, onClose }: { isOpen?: boolean; onClose?: () => void }) => {
   const pathname = usePathname();
   const router = useRouter();
+  const { logout } = useAuth();
 
   useEffect(() => {
     if (onClose) {
@@ -53,6 +55,17 @@ export const Sidebar = ({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
 
         {/* Navigation */}
         <nav className="flex-1 py-[var(--space-6)] px-[var(--space-4)] space-y-[var(--space-1)]">
+          {/* Public Website Link */}
+          <Link
+            href="/"
+            className="flex items-center space-x-3 px-[var(--space-3)] py-[var(--space-3)] rounded-[var(--radius-md)] transition-colors text-sm font-medium text-[var(--text-secondary)] hover:bg-[var(--color-neutral-50)] hover:text-[var(--text-primary)]"
+          >
+            <Globe className="h-5 w-5" />
+            <span>Public Website</span>
+          </Link>
+
+          <div className="border-t border-[var(--color-neutral-200)] my-[var(--space-3)]" />
+
           {allowedNavItems.map((item) => (
             <Link
               key={item.path}
@@ -73,7 +86,7 @@ export const Sidebar = ({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
         {/* Bottom Action */}
         <div className="p-[var(--space-4)] border-t border-[var(--color-neutral-200)]">
           <button 
-            onClick={() => router.push('/login')}
+            onClick={async () => { await logout(); router.push('/login'); }}
             className="flex w-full items-center space-x-3 px-[var(--space-3)] py-[var(--space-3)] rounded-[var(--radius-md)] text-sm font-medium text-[var(--color-error)] hover:bg-[var(--color-error-light)] transition-colors"
           >
             <LogOut className="h-5 w-5" />

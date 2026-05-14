@@ -4,20 +4,21 @@ import { comparePassword, createSession, setSessionCookie } from "@/lib/auth";
 
 export async function POST(request: NextRequest) {
   try {
-    const { email, password, loginType } = await request.json();
+    const { email, password } = await request.json();
 
-    if (!email || !password || !loginType) {
+    if (!email || !password) {
       return NextResponse.json(
-        { error: "Email, password, and login type are required" },
+        { error: "Email and password are required" },
         { status: 400 }
       );
     }
 
-    if (loginType === "admin") {
-      const user = await prisma.user.findUnique({ where: { email } });
-      if (!user || !user.isActive) {
+    // Try admin login first
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (user) {
+      if (!user.isActive) {
         return NextResponse.json(
-          { error: "Invalid email or password" },
+          { error: "Account is deactivated" },
           { status: 401 }
         );
       }
@@ -45,6 +46,7 @@ export async function POST(request: NextRequest) {
       await setSessionCookie(token);
 
       return NextResponse.json({
+        type: "admin",
         user: {
           id: user.id,
           fullName: user.fullName,
@@ -55,15 +57,9 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    if (loginType === "customer") {
-      const customer = await prisma.customer.findUnique({ where: { email } });
-      if (!customer) {
-        return NextResponse.json(
-          { error: "Invalid email or password" },
-          { status: 401 }
-        );
-      }
-
+    // Try customer login
+    const customer = await prisma.customer.findUnique({ where: { email } });
+    if (customer) {
       const valid = await comparePassword(password, customer.passwordHash);
       if (!valid) {
         return NextResponse.json(
@@ -87,6 +83,7 @@ export async function POST(request: NextRequest) {
       await setSessionCookie(token);
 
       return NextResponse.json({
+        type: "customer",
         user: {
           id: customer.id,
           fullName: customer.fullName,
@@ -97,8 +94,8 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(
-      { error: "Invalid login type. Use 'admin' or 'customer'" },
-      { status: 400 }
+      { error: "Invalid email or password" },
+      { status: 401 }
     );
   } catch (error) {
     console.error("Login error:", error);

@@ -2,15 +2,17 @@
 import { useState, FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/common/Button/Button';
 import { Input } from '@/components/common/Input/Input';
+import { useAuth } from '@/components/providers/AuthProvider';
 
 export default function LoginPage() {
   const router = useRouter();
-  const [loginType, setLoginType] = useState<'admin' | 'customer'>('customer');
+  const { refresh: refreshAuth } = useAuth();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -23,7 +25,7 @@ export default function LoginPage() {
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, loginType }),
+        body: JSON.stringify({ email, password }),
       });
 
       const data = await res.json();
@@ -33,7 +35,9 @@ export default function LoginPage() {
         return;
       }
 
-      if (loginType === 'admin') {
+      await refreshAuth();
+
+      if (data.type === 'admin') {
         router.push('/dashboard');
       } else {
         router.push('/account');
@@ -64,9 +68,7 @@ export default function LoginPage() {
             Welcome Back
           </h1>
           <p className="text-[var(--color-primary-200)] text-lg max-w-md leading-relaxed">
-            {loginType === 'admin'
-              ? 'Sign in to access the admin dashboard, manage content, and oversee customers.'
-              : 'Sign in to manage your subscription, view your content history, and update your profile.'}
+            Sign in to access your account.
           </p>
         </div>
       </div>
@@ -85,31 +87,6 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <div className="flex rounded-lg border border-[var(--color-neutral-200)] overflow-hidden">
-            <button
-              type="button"
-              onClick={() => { setLoginType('customer'); setError(''); }}
-              className={`flex-1 py-2.5 text-sm font-medium transition-colors ${
-                loginType === 'customer'
-                  ? 'bg-[var(--color-primary-600)] text-white'
-                  : 'bg-[var(--surface-primary)] text-[var(--text-secondary)] hover:bg-[var(--color-neutral-50)]'
-              }`}
-            >
-              Customer
-            </button>
-            <button
-              type="button"
-              onClick={() => { setLoginType('admin'); setError(''); }}
-              className={`flex-1 py-2.5 text-sm font-medium transition-colors ${
-                loginType === 'admin'
-                  ? 'bg-[var(--color-primary-600)] text-white'
-                  : 'bg-[var(--surface-primary)] text-[var(--text-secondary)] hover:bg-[var(--color-neutral-50)]'
-              }`}
-            >
-              Admin
-            </button>
-          </div>
-
           <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="space-y-4">
               <Input
@@ -123,12 +100,17 @@ export default function LoginPage() {
               />
               <Input
                 label="Password"
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 autoComplete="current-password"
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
+                rightIcon={
+                  <button type="button" onClick={() => setShowPassword(!showPassword)} className="text-[var(--text-muted)] hover:text-[var(--text-secondary)]">
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                }
               />
             </div>
 
@@ -150,20 +132,12 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          {loginType === 'customer' && (
-            <p className="text-center text-sm text-[var(--text-muted)]">
-              Don&apos;t have an account?{' '}
-              <Link href="/signup" className="font-medium text-[var(--color-primary-600)] hover:text-[var(--color-primary-500)]">
-                Create one
-              </Link>
-            </p>
-          )}
-
-          {loginType === 'admin' && (
-            <p className="text-center text-xs text-[var(--text-muted)] mt-4">
-              For administrative access, please use your corporate credentials.
-            </p>
-          )}
+          <p className="text-center text-sm text-[var(--text-muted)]">
+            Don&apos;t have an account?{' '}
+            <Link href="/signup" className="font-medium text-[var(--color-primary-600)] hover:text-[var(--color-primary-500)]">
+              Create one
+            </Link>
+          </p>
         </div>
       </div>
     </div>
