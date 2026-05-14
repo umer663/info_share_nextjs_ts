@@ -1,17 +1,16 @@
 "use client";
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { Globe, LogOut, X } from 'lucide-react';
 import { cn } from '@/utils/cn';
-import { dashboardNavItems } from '@/config/navigation';
+import { UserRole, dashboardNavItems } from '@/config/navigation';
 import { useAuth } from '@/components/providers/AuthProvider';
 import { FullScreenLoader } from '@/components/common/FullScreenLoader/FullScreenLoader';
 
 export const Sidebar = ({ isOpen, onClose }: { isOpen?: boolean; onClose?: () => void }) => {
   const pathname = usePathname();
-  const router = useRouter();
-  const { logout } = useAuth();
+  const { user, logout } = useAuth();
   const [navigating, setNavigating] = useState(false);
 
   useEffect(() => {
@@ -20,9 +19,10 @@ export const Sidebar = ({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
     }
   }, [pathname]);
 
-  // In a real app, you would check user roles from your auth store
-  // For this UI implementation, we'll assume the user has access to all links
-  const allowedNavItems = dashboardNavItems;
+  const userRole = (user as Record<string, unknown> | null)?.role as UserRole | undefined;
+  const allowedNavItems = dashboardNavItems.filter((item) =>
+    item.roles?.includes(userRole ?? ("" as UserRole))
+  );
 
   return (
     <>
@@ -88,7 +88,7 @@ export const Sidebar = ({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
         {/* Bottom Action */}
         <div className="p-[var(--space-4)] border-t border-[var(--color-neutral-200)]">
           <button 
-            onClick={async () => { setNavigating(true); await logout(); router.push('/login'); }}
+            onClick={async () => { setNavigating(true); await logout(); }}
             className="flex w-full items-center space-x-3 px-[var(--space-3)] py-[var(--space-3)] rounded-[var(--radius-md)] text-sm font-medium text-[var(--color-error)] hover:bg-[var(--color-error-light)] transition-colors"
           >
             <LogOut className="h-5 w-5" />

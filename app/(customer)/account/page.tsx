@@ -11,7 +11,9 @@ import { Button } from '@/components/common/Button/Button';
 import { Card } from '@/components/common/Card/Card';
 import { Badge } from '@/components/common/Badge/Badge';
 import { fadeSlideUp, staggerContainer } from '@/utils/animationVariants';
-import { FullScreenLoader } from '@/components/common/FullScreenLoader/FullScreenLoader';
+import { Spinner } from '@/components/common/Spinner/Spinner';
+import { Avatar } from '@/components/common/Avatar/Avatar';
+import { EmptyState } from '@/components/common/EmptyState/EmptyState';
 
 interface CustomerData {
   id: string;
@@ -52,15 +54,19 @@ export default function AccountPage() {
 
   const handleLogout = async () => {
     setNavigating(true);
-    await fetch('/api/auth/logout', { method: 'POST' });
-    router.push('/');
-    router.refresh();
+    try {
+      await fetch('/api/auth/logout', { method: 'POST' });
+      router.push('/');
+      router.refresh();
+    } catch {
+      setNavigating(false);
+    }
   };
 
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-[var(--surface-secondary)]">
-        <div className="animate-spin h-8 w-8 border-4 border-[var(--color-primary-600)] border-t-transparent rounded-full" />
+        <Spinner size="lg" variant="primary" />
       </div>
     );
   }
@@ -76,7 +82,7 @@ export default function AccountPage() {
 
   return (
     <div className="flex flex-col bg-[var(--surface-secondary)] min-h-screen">
-      <section className="bg-[var(--surface-primary)] border-b border-[var(--color-neutral-200)] py-12">
+      <section className="bg-gradient-to-b from-[var(--surface-primary)] to-[var(--surface-secondary)] shadow-[var(--shadow-sm)] py-12">
         <div className="mx-auto max-w-[var(--max-content-width)] px-[var(--space-4)] md:px-[var(--space-8)]">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
             <div>
@@ -87,12 +93,10 @@ export default function AccountPage() {
               variant="outline"
               leftIcon={<LogOut className="h-4 w-4" />}
               onClick={handleLogout}
-              disabled={navigating}
+              isLoading={navigating}
             >
               Log out
             </Button>
-
-            {navigating && <FullScreenLoader />}
           </div>
         </div>
       </section>
@@ -105,10 +109,8 @@ export default function AccountPage() {
           className="grid grid-cols-1 lg:grid-cols-3 gap-8"
         >
           <motion.div variants={fadeSlideUp} className="lg:col-span-1">
-            <Card className="flex flex-col items-center text-center">
-              <div className="w-20 h-20 rounded-full bg-[var(--color-primary-100)] flex items-center justify-center text-[var(--color-primary-600)] text-3xl font-bold mb-4">
-                {customer.fullName.charAt(0)}
-              </div>
+            <Card elevation="md" className="flex flex-col items-center text-center">
+              <Avatar size="xl" fallback={customer.fullName} className="mb-4" />
               <h2 className="text-xl font-bold text-[var(--text-primary)]">{customer.fullName}</h2>
               <div className="flex items-center space-x-2 mt-1 mb-4">
                 <Mail className="h-4 w-4 text-[var(--text-muted)]" />
@@ -139,7 +141,7 @@ export default function AccountPage() {
           </motion.div>
 
           <motion.div variants={fadeSlideUp} className="lg:col-span-2 space-y-8">
-            <Card>
+            <Card elevation="md">
               <div className="flex items-start justify-between mb-6">
                 <div className="flex items-center space-x-3">
                   <div className="p-2 rounded-lg bg-[var(--color-primary-50)] text-[var(--color-primary-600)]">
@@ -179,7 +181,7 @@ export default function AccountPage() {
                   </div>
                   <div className="h-2 rounded-full bg-[var(--color-neutral-200)] overflow-hidden">
                     <div
-                      className="h-full rounded-full bg-[var(--color-primary-500)] transition-all"
+                      className="h-full rounded-full bg-gradient-to-r from-[var(--color-primary-500)] to-[var(--color-primary-600)] transition-all"
                       style={{ width: `${freePercentage}%` }}
                     />
                   </div>
@@ -200,7 +202,7 @@ export default function AccountPage() {
                       </p>
                     </div>
                   </div>
-                  <Button className="bg-[var(--color-warning-dark)] text-white hover:bg-[#78350f] border-none shrink-0 whitespace-nowrap">
+                  <Button className="bg-[var(--color-warning-dark)] text-white hover:opacity-90 border-none shrink-0 whitespace-nowrap">
                     Upgrade Now <ArrowRight className="ml-1 h-4 w-4" />
                   </Button>
                 </div>
@@ -228,11 +230,11 @@ export default function AccountPage() {
                 </div>
               </div>
 
-              <div className="text-center py-8">
-                <BookOpen className="h-10 w-10 mx-auto text-[var(--text-muted)] mb-3" />
-                <p className="text-[var(--text-muted)]">No payment history yet</p>
-                <p className="text-sm text-[var(--text-muted)] mt-1">Payments will appear once you subscribe</p>
-              </div>
+              <EmptyState
+                icon={<BookOpen className="h-8 w-8" />}
+                title="No payment history yet"
+                description="Payments will appear once you subscribe"
+              />
             </Card>
 
             <Card>
@@ -240,7 +242,7 @@ export default function AccountPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <Link
                   href="/content"
-                  className="flex items-center space-x-3 p-3 rounded-lg border border-[var(--color-neutral-200)] hover:bg-[var(--color-neutral-50)] transition-colors"
+                  className="flex items-center space-x-3 p-3 rounded-lg border border-[var(--color-neutral-200)] shadow-[var(--shadow-sm)] hover:bg-[var(--color-neutral-50)] hover:shadow-[var(--shadow-md)] transition-all duration-200"
                 >
                   <BookOpen className="h-5 w-5 text-[var(--color-primary-600)]" />
                   <span className="text-sm font-medium text-[var(--text-primary)]">Browse Content</span>

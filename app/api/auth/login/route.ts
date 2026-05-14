@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { comparePassword, createSession, setSessionCookie } from "@/lib/auth";
+import { getAllowedRoutes } from "@/lib/permissions";
 
 export async function POST(request: NextRequest) {
   try {
@@ -45,6 +46,8 @@ export async function POST(request: NextRequest) {
 
       await setSessionCookie(token);
 
+      const allowedRoutes = await getAllowedRoutes(user.role);
+
       return NextResponse.json({
         type: "admin",
         user: {
@@ -53,6 +56,7 @@ export async function POST(request: NextRequest) {
           email: user.email,
           role: user.role,
           avatarUrl: user.avatarUrl,
+          allowedRoutes,
         },
       });
     }
@@ -76,11 +80,13 @@ export async function POST(request: NextRequest) {
       const token = await createSession({
         id: customer.id,
         email: customer.email,
-        role: "CUSTOMER",
+        role: customer.role,
         type: "customer",
       });
 
       await setSessionCookie(token);
+
+      const allowedRoutes = await getAllowedRoutes(customer.role);
 
       return NextResponse.json({
         type: "customer",
@@ -88,7 +94,8 @@ export async function POST(request: NextRequest) {
           id: customer.id,
           fullName: customer.fullName,
           email: customer.email,
-          role: "CUSTOMER",
+          role: customer.role,
+          allowedRoutes,
         },
       });
     }

@@ -1,21 +1,36 @@
 "use client";
 
 import { ReactNode, useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "next/navigation";
 import { Sidebar } from "./Sidebar";
 import { TopBar } from "./TopBar";
 import { useAuth } from "@/components/providers/AuthProvider";
+
+function isRouteAllowed(allowedRoutes: string[], currentPath: string): boolean {
+  return allowedRoutes.some(
+    (route) => currentPath === route || currentPath.startsWith(route + "/")
+  );
+}
 
 export const DashboardLayoutWrapper = ({ children }: { children: ReactNode }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const { user, loading } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (loading) return;
+
+    if (!user) {
       router.push('/login');
+      return;
     }
-  }, [loading, user, router]);
+
+    const allowedRoutes = (user as Record<string, unknown>).allowedRoutes as string[] | undefined;
+    if (allowedRoutes && !isRouteAllowed(allowedRoutes, pathname)) {
+      router.push(user.role === "CUSTOMER" ? "/account" : "/dashboard");
+    }
+  }, [loading, user, router, pathname]);
 
   if (loading) {
     return (

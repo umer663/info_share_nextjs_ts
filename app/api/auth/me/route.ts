@@ -1,12 +1,15 @@
 import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
+import { getAllowedRoutes } from "@/lib/permissions";
 
 export async function GET() {
   const session = await getSession();
   if (!session) {
     return NextResponse.json({ error: "Not authenticated" }, { status: 401 });
   }
+
+  const allowedRoutes = await getAllowedRoutes(session.role);
 
   if (session.type === "admin") {
     const user = await prisma.user.findUnique({
@@ -25,7 +28,7 @@ export async function GET() {
     if (!user) {
       return NextResponse.json({ error: "User not found" }, { status: 404 });
     }
-    return NextResponse.json({ user, type: "admin" });
+    return NextResponse.json({ user: { ...user, allowedRoutes }, type: "admin" });
   }
 
   const customer = await prisma.customer.findUnique({
@@ -34,6 +37,7 @@ export async function GET() {
       id: true,
       fullName: true,
       email: true,
+      role: true,
       subscriptionStatus: true,
       freeContentRemaining: true,
       memberSince: true,
@@ -49,5 +53,5 @@ export async function GET() {
       { status: 404 }
     );
   }
-  return NextResponse.json({ user: customer, type: "customer" });
+  return NextResponse.json({ user: { ...customer, allowedRoutes }, type: "customer" });
 }

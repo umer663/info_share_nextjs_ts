@@ -1,22 +1,19 @@
 "use client";
 import { useState } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { Menu, X, LogOut, LayoutDashboard } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { Button } from '@/components/common/Button/Button';
 import { ThemeSelector } from '@/components/common/ThemeSelector/ThemeSelector';
 import { Avatar } from '@/components/common/Avatar/Avatar';
 import { useAuth } from '@/components/providers/AuthProvider';
-import { FullScreenLoader } from '@/components/common/FullScreenLoader/FullScreenLoader';
 import { publicNavItems } from '@/config/navigation';
 
 export const PublicHeader = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
-  const router = useRouter();
-  const { user, loading, logout } = useAuth();
-  const [navigating, setNavigating] = useState(false);
+  const { user, loading } = useAuth();
 
   return (
     <header className="sticky top-0 z-[var(--z-sticky)] w-full border-b border-[var(--color-neutral-200)] bg-[var(--surface-primary)] backdrop-blur-md bg-opacity-80">
@@ -70,7 +67,10 @@ export const PublicHeader = () => {
               </div>
               <Avatar fallback={user.fullName} size="md" />
               <button
-                onClick={async () => { setNavigating(true); await logout(); router.push('/'); }}
+                onClick={() => {
+                  fetch("/api/auth/logout", { method: "POST" });
+                  window.location.href = '/';
+                }}
                 className="p-2 text-[var(--text-secondary)] hover:text-[var(--color-error)] transition-colors"
                 title="Log out"
               >
@@ -137,7 +137,6 @@ export const PublicHeader = () => {
         </div>
       )}
 
-      {navigating && <FullScreenLoader />}
     </header>
   );
 };
