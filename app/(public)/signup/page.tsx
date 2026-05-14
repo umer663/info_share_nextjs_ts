@@ -1,5 +1,5 @@
 "use client";
-import { useState } from 'react';
+import { useState, FormEvent } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
@@ -10,6 +10,52 @@ export default function SignupPage() {
   const router = useRouter();
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [terms, setTerms] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setError('');
+
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
+      return;
+    }
+
+    if (!terms) {
+      setError('You must agree to the terms of service');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const res = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fullName, email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || 'Registration failed');
+        return;
+      }
+
+      router.push('/account');
+      router.refresh();
+    } catch {
+      setError('Network error. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="flex min-h-screen bg-[var(--surface-primary)]">
@@ -46,10 +92,24 @@ export default function SignupPage() {
             </p>
           </div>
 
-          <form className="space-y-5" onSubmit={(e) => { e.preventDefault(); router.push('/account'); }}>
+          <form className="space-y-5" onSubmit={handleSubmit}>
             <div className="space-y-4">
-              <Input label="Full Name" required placeholder="Jane Doe" />
-              <Input label="Email address" type="email" autoComplete="email" required placeholder="jane@example.com" />
+              <Input
+                label="Full Name"
+                required
+                placeholder="Jane Doe"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+              />
+              <Input
+                label="Email address"
+                type="email"
+                autoComplete="email"
+                required
+                placeholder="jane@example.com"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+              />
               <div className="relative">
                 <Input
                   label="Password"
@@ -57,6 +117,8 @@ export default function SignupPage() {
                   autoComplete="new-password"
                   required
                   placeholder="Min. 8 characters"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   rightIcon={
                     <button type="button" onClick={() => setShowPassword(!showPassword)} className="text-[var(--text-muted)] hover:text-[var(--text-secondary)]">
                       {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -71,6 +133,8 @@ export default function SignupPage() {
                   autoComplete="new-password"
                   required
                   placeholder="Repeat your password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
                   rightIcon={
                     <button type="button" onClick={() => setShowConfirm(!showConfirm)} className="text-[var(--text-muted)] hover:text-[var(--text-secondary)]">
                       {showConfirm ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
@@ -80,11 +144,17 @@ export default function SignupPage() {
               </div>
             </div>
 
+            {error && (
+              <p className="text-sm text-[var(--color-error)]">{error}</p>
+            )}
+
             <div className="flex items-start space-x-3">
               <input
                 id="terms"
                 type="checkbox"
                 required
+                checked={terms}
+                onChange={(e) => setTerms(e.target.checked)}
                 className="mt-1 h-4 w-4 rounded border-[var(--color-neutral-300)] text-[var(--color-primary-600)] focus:ring-[var(--color-primary-500)]"
               />
               <label htmlFor="terms" className="text-sm text-[var(--text-secondary)]">
@@ -95,8 +165,8 @@ export default function SignupPage() {
               </label>
             </div>
 
-            <Button type="submit" fullWidth size="lg">
-              Create Account
+            <Button type="submit" fullWidth size="lg" disabled={loading}>
+              {loading ? 'Creating account...' : 'Create Account'}
             </Button>
 
             <p className="text-center text-sm text-[var(--text-muted)]">

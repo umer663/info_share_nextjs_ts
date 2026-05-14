@@ -1,4 +1,5 @@
 "use client";
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
@@ -11,22 +12,64 @@ import { Card } from '@/components/common/Card/Card';
 import { Badge } from '@/components/common/Badge/Badge';
 import { fadeSlideUp, staggerContainer } from '@/utils/animationVariants';
 
-const mockCustomer = {
-  name: 'Jane Doe',
-  email: 'jane@example.com',
-  subscriptionStatus: 'FREE' as const,
-  memberSince: 'May 2026',
-  freeRemaining: 3,
-  lastActive: '2 hours ago',
-};
-
-const mockPaymentHistory = [
-  { date: 'No payments yet', amount: '—', status: '—' },
-];
+interface CustomerData {
+  id: string;
+  fullName: string;
+  email: string;
+  subscriptionStatus: string;
+  freeContentRemaining: number;
+  memberSince: string;
+  lastActive: string | null;
+  contentViewedCount: number;
+  isEmailVerified: boolean;
+}
 
 export default function AccountPage() {
   const router = useRouter();
-  const customer = mockCustomer;
+  const [customer, setCustomer] = useState<CustomerData | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/auth/me')
+      .then((res) => {
+        if (!res.ok) throw new Error('Not authenticated');
+        return res.json();
+      })
+      .then((data) => {
+        if (data.type !== 'customer') {
+          router.push('/dashboard');
+          return;
+        }
+        setCustomer(data.user);
+      })
+      .catch(() => {
+        router.push('/login');
+      })
+      .finally(() => setLoading(false));
+  }, [router]);
+
+  const handleLogout = async () => {
+    await fetch('/api/auth/logout', { method: 'POST' });
+    router.push('/');
+    router.refresh();
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-[var(--surface-secondary)]">
+        <div className="animate-spin h-8 w-8 border-4 border-[var(--color-primary-600)] border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+
+  if (!customer) return null;
+
+  const memberSinceDate = new Date(customer.memberSince).toLocaleDateString('en-US', {
+    month: 'long',
+    year: 'numeric',
+  });
+
+  const freePercentage = (customer.freeContentRemaining / 5) * 100;
 
   return (
     <div className="flex flex-col bg-[var(--surface-secondary)] min-h-screen">
@@ -40,7 +83,7 @@ export default function AccountPage() {
             <Button
               variant="outline"
               leftIcon={<LogOut className="h-4 w-4" />}
-              onClick={() => router.push('/')}
+              onClick={handleLogout}
             >
               Log out
             </Button>
@@ -58,9 +101,9 @@ export default function AccountPage() {
           <motion.div variants={fadeSlideUp} className="lg:col-span-1">
             <Card className="flex flex-col items-center text-center">
               <div className="w-20 h-20 rounded-full bg-[var(--color-primary-100)] flex items-center justify-center text-[var(--color-primary-600)] text-3xl font-bold mb-4">
-                {customer.name.charAt(0)}
+                {customer.fullName.charAt(0)}
               </div>
-              <h2 className="text-xl font-bold text-[var(--text-primary)]">{customer.name}</h2>
+              <h2 className="text-xl font-bold text-[var(--text-primary)]">{customer.fullName}</h2>
               <div className="flex items-center space-x-2 mt-1 mb-4">
                 <Mail className="h-4 w-4 text-[var(--text-muted)]" />
                 <span className="text-sm text-[var(--text-secondary)]">{customer.email}</span>
@@ -71,12 +114,20 @@ export default function AccountPage() {
               <div className="w-full mt-6 space-y-3 text-left">
                 <div className="flex items-center space-x-3 text-sm text-[var(--text-secondary)]">
                   <Calendar className="h-4 w-4 text-[var(--text-muted)]" />
-                  <span>Member since {customer.memberSince}</span>
+                  <span>Member since {memberSinceDate}</span>
                 </div>
-                <div className="flex items-center space-x-3 text-sm text-[var(--text-secondary)]">
-                  <Clock className="h-4 w-4 text-[var(--text-muted)]" />
-                  <span>Last active {customer.lastActive}</span>
-                </div>
+                {customer.lastActive && (
+                  <div className="flex items-center space-x-3 text-sm text-[var(--text-secondary)]">
+                    <Clock className="h-4 w-4 text-[var(--text-muted)]" />
+                    <span>Last active {new Date(customer.lastActive).toLocaleDateString()}</span>
+                  </div>
+                )}
+                {!customer.isEmailVerified && (
+                  <div className="flex items-center space-x-3 text-sm text-[var(--color-warning)]">
+                    <AlertTriangle className="h-4 w-4" />
+                    <span>Email not verified</span>
+                  </div>
+                )}
               </div>
             </Card>
           </motion.div>
@@ -105,12 +156,12 @@ export default function AccountPage() {
                 <div className="flex justify-between items-center">
                   <span className="text-[var(--text-secondary)]">Status</span>
                   <Badge variant={customer.subscriptionStatus === 'FREE' ? 'secondary' : 'success'}>
-                    Active
+                    {customer.subscriptionStatus}
                   </Badge>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-[var(--text-secondary)]">Free previews remaining</span>
-                  <span className="font-medium text-[var(--text-primary)]">{customer.freeRemaining} / 5</span>
+                  <span className="font-medium text-[var(--text-primary)]">{customer.freeContentRemaining} / 5</span>
                 </div>
               </div>
 
@@ -118,16 +169,16 @@ export default function AccountPage() {
                 <div className="mb-6">
                   <div className="flex justify-between text-sm mb-2">
                     <span className="text-[var(--text-secondary)]">Free content limit</span>
-                    <span className="font-medium text-[var(--text-primary)]">{customer.freeRemaining} remaining</span>
+                    <span className="font-medium text-[var(--text-primary)]">{customer.freeContentRemaining} remaining</span>
                   </div>
                   <div className="h-2 rounded-full bg-[var(--color-neutral-200)] overflow-hidden">
                     <div
                       className="h-full rounded-full bg-[var(--color-primary-500)] transition-all"
-                      style={{ width: `${(customer.freeRemaining / 5) * 100}%` }}
+                      style={{ width: `${freePercentage}%` }}
                     />
                   </div>
                   <p className="text-xs text-[var(--text-muted)] mt-2">
-                    You have {customer.freeRemaining} free premium views left. Upgrade for unlimited access.
+                    You have {customer.freeContentRemaining} free premium views left. Upgrade for unlimited access.
                   </p>
                 </div>
               )}
@@ -153,7 +204,7 @@ export default function AccountPage() {
                   <div>
                     <p className="font-bold text-[var(--color-success-dark)]">Premium Active</p>
                     <p className="text-sm text-[var(--color-success-dark)] opacity-90">
-                      Your subscription is active. Next billing date: Jun 15, 2026.
+                      Your subscription is active.
                     </p>
                   </div>
                 </div>
@@ -171,36 +222,11 @@ export default function AccountPage() {
                 </div>
               </div>
 
-              {mockPaymentHistory[0].date === 'No payments yet' ? (
-                <div className="text-center py-8">
-                  <BookOpen className="h-10 w-10 mx-auto text-[var(--text-muted)] mb-3" />
-                  <p className="text-[var(--text-muted)]">No payment history yet</p>
-                  <p className="text-sm text-[var(--text-muted)] mt-1">Payments will appear once you subscribe</p>
-                </div>
-              ) : (
-                <div className="overflow-x-auto">
-                  <table className="w-full text-left text-sm">
-                    <thead>
-                      <tr className="border-b border-[var(--color-neutral-200)] text-[var(--text-muted)]">
-                        <th className="pb-3 font-medium">Date</th>
-                        <th className="pb-3 font-medium">Amount</th>
-                        <th className="pb-3 font-medium">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-[var(--color-neutral-100)]">
-                      {mockPaymentHistory.map((payment, i) => (
-                        <tr key={i}>
-                          <td className="py-3 text-[var(--text-secondary)]">{payment.date}</td>
-                          <td className="py-3 text-[var(--text-primary)] font-medium">{payment.amount}</td>
-                          <td className="py-3">
-                            <Badge variant="secondary">{payment.status}</Badge>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              )}
+              <div className="text-center py-8">
+                <BookOpen className="h-10 w-10 mx-auto text-[var(--text-muted)] mb-3" />
+                <p className="text-[var(--text-muted)]">No payment history yet</p>
+                <p className="text-sm text-[var(--text-muted)] mt-1">Payments will appear once you subscribe</p>
+              </div>
             </Card>
 
             <Card>

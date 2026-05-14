@@ -1,0 +1,195 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum UserRole {
+  ADMIN
+  MANAGER
+}
+
+enum ContentStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum SubscriptionStatus {
+  FREE
+  ACTIVE
+  EXPIRED
+  CANCELLED
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum ActivityType {
+  content_upload
+  new_customer
+  subscription
+  payment
+}
+
+model User {
+  id           String   @id @default(uuid())
+  fullName     String   @map("full_name")
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  role         UserRole @default(MANAGER)
+  avatarUrl    String?  @map("avatar_url")
+  isActive     Boolean  @default(true) @map("is_active")
+  isProtected  Boolean  @default(false) @map("is_protected")
+  lastLogin    DateTime? @map("last_login")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  content     Content[]
+  activityLog ActivityLog[] @relation("ActivityPerformedBy")
+
+  @@map("users")
+}
+
+model Customer {
+  id                   String             @id @default(uuid())
+  fullName             String             @map("full_name")
+  email                String             @unique
+  passwordHash         String             @map("password_hash")
+  subscriptionStatus   SubscriptionStatus @default(FREE) @map("subscription_status")
+  freeContentRemaining Int                @default(5) @map("free_content_remaining")
+  memberSince          DateTime           @default(now()) @map("member_since")
+  lastActive           DateTime?          @map("last_active")
+  contentViewedCount   Int                @default(0) @map("content_viewed_count")
+  isEmailVerified      Boolean            @default(false) @map("is_email_verified")
+  verificationToken    String?            @map("verification_token")
+  resetPasswordToken   String?            @map("reset_password_token")
+  resetPasswordExpires DateTime?          @map("reset_password_expires")
+  createdAt            DateTime           @default(now()) @map("created_at")
+  updatedAt            DateTime           @updatedAt @map("updated_at")
+
+  subscriptions Subscription[]
+  payments      Payment[]
+  contentViews  ContentView[]
+  activityLog   ActivityLog[]
+
+  @@index([subscriptionStatus])
+  @@index([isEmailVerified])
+  @@index([verificationToken])
+  @@index([resetPasswordToken])
+  @@map("customers")
+}
+
+model Subscription {
+  id         String             @id @default(uuid())
+  customerId String             @map("customer_id")
+  planName   String             @map("plan_name")
+  price      Decimal            @db.Decimal(10, 2)
+  currency   String             @default("USD") @db.VarChar(3)
+  startDate  DateTime           @map("start_date") @db.Date
+  endDate    DateTime           @map("end_date") @db.Date
+  status     SubscriptionStatus
+  autoRenew  Boolean            @default(true) @map("auto_renew")
+  createdAt  DateTime           @default(now()) @map("created_at")
+  updatedAt  DateTime           @updatedAt @map("updated_at")
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  payments Payment[]
+
+  @@index([customerId, status])
+  @@index([endDate])
+  @@map("subscriptions")
+}
+
+model Payment {
+  id             String        @id @default(uuid())
+  customerId     String        @map("customer_id")
+  subscriptionId String        @map("subscription_id")
+  amount         Decimal       @db.Decimal(10, 2)
+  currency       String        @default("USD") @db.VarChar(3)
+  status         PaymentStatus @default(PENDING)
+  paymentMethod  String        @map("payment_method")
+  transactionId  String?       @map("transaction_id")
+  paidAt         DateTime?     @map("paid_at")
+  createdAt      DateTime      @default(now()) @map("created_at")
+
+  customer     Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  subscription Subscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+
+  @@index([customerId, paidAt])
+  @@index([status])
+  @@map("payments")
+}
+
+model Content {
+  id          String        @id @default(uuid())
+  title       String
+  description String
+  imageUrl    String?       @map("image_url")
+  videoUrl    String?       @map("video_url")
+  isPremium   Boolean       @default(false) @map("is_premium")
+  status      ContentStatus @default(DRAFT)
+  viewCount   Int           @default(0) @map("view_count")
+  createdBy   String        @map("created_by")
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  createdByUser User          @relation(fields: [createdBy], references: [id])
+  contentViews  ContentView[]
+  activityLog   ActivityLog[]
+
+  @@index([status])
+  @@index([isPremium])
+  @@map("content")
+}
+
+model ContentView {
+  id         String   @id @default(uuid())
+  customerId String   @map("customer_id")
+  contentId  String   @map("content_id")
+  viewedAt   DateTime @default(now()) @map("viewed_at")
+
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  content  Content  @relation(fields: [contentId], references: [id], onDelete: Cascade)
+
+  @@unique([customerId, contentId])
+  @@index([contentId])
+  @@index([viewedAt])
+  @@map("content_views")
+}
+
+model ActivityLog {
+  id           String       @id @default(uuid())
+  type         ActivityType
+  description  String
+  subject      String?
+  performedBy  String?      @map("performed_by")
+  customerId   String?      @map("customer_id")
+  contentId    String?      @map("content_id")
+  createdAt    DateTime     @default(now()) @map("created_at")
+
+  performedByUser User?    @relation("ActivityPerformedBy", fields: [performedBy], references: [id])
+  customer        Customer? @relation(fields: [customerId], references: [id])
+  content         Content?  @relation(fields: [contentId], references: [id])
+
+  @@index([createdAt])
+  @@map("activity_log")
+}
+
+model ContactMessage {
+  id        String   @id @default(uuid())
+  fullName  String   @map("full_name")
+  email     String
+  subject   String
+  message   String
+  isRead    Boolean  @default(false) @map("is_read")
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@map("contact_messages")
+}

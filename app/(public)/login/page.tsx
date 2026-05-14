@@ -1,22 +1,48 @@
 "use client";
-import { useState } from 'react';
+import { useState, FormEvent } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';
 import { Button } from '@/components/common/Button/Button';
 import { Input } from '@/components/common/Input/Input';
-import { Toggle } from '@/components/common/Toggle/Toggle';
 
 export default function LoginPage() {
+  const router = useRouter();
+  const [loginType, setLoginType] = useState<'admin' | 'customer'>('customer');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
-    // Mock authentication logic: redirect based on email content
-    if (email.toLowerCase().includes('admin')) {
-      window.location.href = '/dashboard';
-    } else {
-      window.location.href = '/account';
+    setError('');
+    setLoading(true);
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, loginType }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || 'Login failed');
+        return;
+      }
+
+      if (loginType === 'admin') {
+        router.push('/dashboard');
+      } else {
+        router.push('/account');
+      }
+      router.refresh();
+    } catch {
+      setError('Network error. Please try again.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -38,7 +64,9 @@ export default function LoginPage() {
             Welcome Back
           </h1>
           <p className="text-[var(--color-primary-200)] text-lg max-w-md leading-relaxed">
-            Sign in to access your dashboard, manage your subscriptions, and stay up to date with the latest content and community updates.
+            {loginType === 'admin'
+              ? 'Sign in to access the admin dashboard, manage content, and oversee customers.'
+              : 'Sign in to manage your subscription, view your content history, and update your profile.'}
           </p>
         </div>
       </div>
@@ -57,10 +85,32 @@ export default function LoginPage() {
             </p>
           </div>
 
-          <form
-            className="space-y-6"
-            onSubmit={handleSubmit}
-          >
+          <div className="flex rounded-lg border border-[var(--color-neutral-200)] overflow-hidden">
+            <button
+              type="button"
+              onClick={() => { setLoginType('customer'); setError(''); }}
+              className={`flex-1 py-2.5 text-sm font-medium transition-colors ${
+                loginType === 'customer'
+                  ? 'bg-[var(--color-primary-600)] text-white'
+                  : 'bg-[var(--surface-primary)] text-[var(--text-secondary)] hover:bg-[var(--color-neutral-50)]'
+              }`}
+            >
+              Customer
+            </button>
+            <button
+              type="button"
+              onClick={() => { setLoginType('admin'); setError(''); }}
+              className={`flex-1 py-2.5 text-sm font-medium transition-colors ${
+                loginType === 'admin'
+                  ? 'bg-[var(--color-primary-600)] text-white'
+                  : 'bg-[var(--surface-primary)] text-[var(--text-secondary)] hover:bg-[var(--color-neutral-50)]'
+              }`}
+            >
+              Admin
+            </button>
+          </div>
+
+          <form className="space-y-6" onSubmit={handleSubmit}>
             <div className="space-y-4">
               <Input
                 label="Email address"
@@ -82,32 +132,38 @@ export default function LoginPage() {
               />
             </div>
 
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <Toggle label="Remember me" id="remember-me" />
-              </div>
-              <div className="text-sm">
-                <a href="#" className="font-medium text-[var(--color-primary-600)] hover:text-[var(--color-primary-500)]">
-                  Forgot password?
-                </a>
-              </div>
+            {error && (
+              <p className="text-sm text-[var(--color-error)]">{error}</p>
+            )}
+
+            <div className="flex items-center justify-end">
+              <Link
+                href="/forgot-password"
+                className="text-sm font-medium text-[var(--color-primary-600)] hover:text-[var(--color-primary-500)]"
+              >
+                Forgot password?
+              </Link>
             </div>
 
-            <Button type="submit" fullWidth size="lg">
-              Sign in
+            <Button type="submit" fullWidth size="lg" disabled={loading}>
+              {loading ? 'Signing in...' : 'Sign in'}
             </Button>
           </form>
 
-          <p className="text-center text-sm text-[var(--text-muted)]">
-            Don&apos;t have an account?{' '}
-            <Link href="/signup" className="font-medium text-[var(--color-primary-600)] hover:text-[var(--color-primary-500)]">
-              Create one
-            </Link>
-          </p>
-          
-          <p className="text-center text-xs text-[var(--text-muted)] mt-4">
-            For administrative access, please use your corporate credentials.
-          </p>
+          {loginType === 'customer' && (
+            <p className="text-center text-sm text-[var(--text-muted)]">
+              Don&apos;t have an account?{' '}
+              <Link href="/signup" className="font-medium text-[var(--color-primary-600)] hover:text-[var(--color-primary-500)]">
+                Create one
+              </Link>
+            </p>
+          )}
+
+          {loginType === 'admin' && (
+            <p className="text-center text-xs text-[var(--text-muted)] mt-4">
+              For administrative access, please use your corporate credentials.
+            </p>
+          )}
         </div>
       </div>
     </div>
