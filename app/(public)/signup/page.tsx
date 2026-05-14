@@ -6,6 +6,7 @@ import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/common/Button/Button';
 import { Input } from '@/components/common/Input/Input';
 import { useAuth } from '@/components/providers/AuthProvider';
+import { FullScreenLoader } from '@/components/common/FullScreenLoader/FullScreenLoader';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -19,6 +20,7 @@ export default function SignupPage() {
   const [terms, setTerms] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [navigating, setNavigating] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -49,6 +51,8 @@ export default function SignupPage() {
         setError(data.error || 'Registration failed');
         return;
       }
+
+      setNavigating(true);
 
       await refreshAuth();
       router.push('/account');
@@ -171,6 +175,8 @@ export default function SignupPage() {
             <Button type="submit" fullWidth size="lg" disabled={loading}>
               {loading ? 'Creating account...' : 'Create Account'}
             </Button>
+
+            {navigating && <FullScreenLoader />}
 
             <p className="text-center text-sm text-[var(--text-muted)]">
               Already have an account?{' '}

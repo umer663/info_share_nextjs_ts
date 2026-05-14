@@ -11,6 +11,7 @@ import { Button } from '@/components/common/Button/Button';
 import { Card } from '@/components/common/Card/Card';
 import { Badge } from '@/components/common/Badge/Badge';
 import { fadeSlideUp, staggerContainer } from '@/utils/animationVariants';
+import { FullScreenLoader } from '@/components/common/FullScreenLoader/FullScreenLoader';
 
 interface CustomerData {
   id: string;
@@ -28,6 +29,7 @@ export default function AccountPage() {
   const router = useRouter();
   const [customer, setCustomer] = useState<CustomerData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [navigating, setNavigating] = useState(false);
 
   useEffect(() => {
     fetch('/api/auth/me')
@@ -49,6 +51,7 @@ export default function AccountPage() {
   }, [router]);
 
   const handleLogout = async () => {
+    setNavigating(true);
     await fetch('/api/auth/logout', { method: 'POST' });
     router.push('/');
     router.refresh();
@@ -84,9 +87,12 @@ export default function AccountPage() {
               variant="outline"
               leftIcon={<LogOut className="h-4 w-4" />}
               onClick={handleLogout}
+              disabled={navigating}
             >
               Log out
             </Button>
+
+            {navigating && <FullScreenLoader />}
           </div>
         </div>
       </section>

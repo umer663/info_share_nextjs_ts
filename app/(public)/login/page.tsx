@@ -6,6 +6,7 @@ import { ArrowLeft, Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/common/Button/Button';
 import { Input } from '@/components/common/Input/Input';
 import { useAuth } from '@/components/providers/AuthProvider';
+import { FullScreenLoader } from '@/components/common/FullScreenLoader/FullScreenLoader';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -15,6 +16,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [navigating, setNavigating] = useState(false);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -34,6 +36,8 @@ export default function LoginPage() {
         setError(data.error || 'Login failed');
         return;
       }
+
+      setNavigating(true);
 
       await refreshAuth();
 
@@ -131,6 +135,8 @@ export default function LoginPage() {
               {loading ? 'Signing in...' : 'Sign in'}
             </Button>
           </form>
+
+          {navigating && <FullScreenLoader />}
 
           <p className="text-center text-sm text-[var(--text-muted)]">
             Don&apos;t have an account?{' '}

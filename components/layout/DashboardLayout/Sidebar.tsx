@@ -1,16 +1,18 @@
 "use client";
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { Globe, LogOut, X } from 'lucide-react';
 import { cn } from '@/utils/cn';
 import { dashboardNavItems } from '@/config/navigation';
 import { useAuth } from '@/components/providers/AuthProvider';
+import { FullScreenLoader } from '@/components/common/FullScreenLoader/FullScreenLoader';
 
 export const Sidebar = ({ isOpen, onClose }: { isOpen?: boolean; onClose?: () => void }) => {
   const pathname = usePathname();
   const router = useRouter();
   const { logout } = useAuth();
+  const [navigating, setNavigating] = useState(false);
 
   useEffect(() => {
     if (onClose) {
@@ -86,13 +88,15 @@ export const Sidebar = ({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
         {/* Bottom Action */}
         <div className="p-[var(--space-4)] border-t border-[var(--color-neutral-200)]">
           <button 
-            onClick={async () => { await logout(); router.push('/login'); }}
+            onClick={async () => { setNavigating(true); await logout(); router.push('/login'); }}
             className="flex w-full items-center space-x-3 px-[var(--space-3)] py-[var(--space-3)] rounded-[var(--radius-md)] text-sm font-medium text-[var(--color-error)] hover:bg-[var(--color-error-light)] transition-colors"
           >
             <LogOut className="h-5 w-5" />
             <span>Log out</span>
           </button>
         </div>
+
+        {navigating && <FullScreenLoader />}
       </aside>
     </>
   );
